@@ -2,19 +2,26 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "br.com.zup.edu";
-option java_outer_classname = "PropostasGrpc";
-option objc_class_prefix = "HLW";
 
 package br.com.zup.edu;
 
-service PropostasGrpcService {
-  rpc send (PropostasGrpcRequest) returns (PropostasGrpcReply) {}
+service CadastraPropostaService {
+
+  rpc cadastra (PropostaRequest) returns (PropostaResponse) {}
+
 }
 
-message PropostasGrpcRequest {
-  string name = 1;
+message PropostaRequest {
+
+  string nome = 1;
+  string documento = 2;
+  string email = 3;
+  string endereco = 4;
+  string salario = 5;
+
 }
 
-message PropostasGrpcReply {
-  string message = 1;
+message PropostaResponse {
+
+  int64 id = 1; // long
 }
