@@ -4,4 +4,7 @@ import io.micronaut.data.annotation.Repository
 import io.micronaut.data.jpa.repository.JpaRepository
 
 @Repository
-interface PropostaRepository : JpaRepository<Proposta, Long>
+interface PropostaRepository : JpaRepository<Proposta, Long> {
+
+    fun existsByDocumento(documento: String?): Boolean
+}

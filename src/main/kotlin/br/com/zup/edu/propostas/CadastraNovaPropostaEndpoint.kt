@@ -3,37 +3,42 @@ package br.com.zup.edu.propostas
 import br.com.zup.edu.CadastraPropostaServiceGrpc
 import br.com.zup.edu.PropostaRequest
 import br.com.zup.edu.PropostaResponse
+import br.com.zup.edu.propostas.grpc.ErrorHandler
 import io.grpc.stub.StreamObserver
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import javax.inject.Singleton
 
 @Singleton
-class CadastraNovaPropostaEndpoint(val propostaRepository: PropostaRepository) : CadastraPropostaServiceGrpc.CadastraPropostaServiceImplBase() {
+open class CadastraNovaPropostaEndpoint(val repository: PropostaRepository) : CadastraPropostaServiceGrpc.CadastraPropostaServiceImplBase() {
 
+    private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
-    override fun cadastra(request: PropostaRequest,
-                          responseObserver: StreamObserver<PropostaResponse>) {
+    @ErrorHandler
+    open override fun cadastra(request: PropostaRequest,
+                               responseObserver: StreamObserver<PropostaResponse>) {
 
-        // validar os dados
-        val proposta = request.toModel()
+        if (repository.existsByDocumento(request.documento)) {
+            throw PropostaJaExistenteException("proposta ja existente para este documento")
+        }
 
-        propostaRepository.save(proposta)
+        val proposta = repository.save(request.toModel()) // pode lançar uma ConstraintViolationException
 
-        // devolver o id da proposta
-        val response = PropostaResponse.newBuilder()
-                                       .setId(proposta.id!!)
-                                       .build()
-        responseObserver.onNext(response)
+        responseObserver.onNext(PropostaResponse.newBuilder()
+                                            .setId(proposta.id!!)
+                                            .build())
         responseObserver.onCompleted()
     }
-
 }
 
+/**
+ * Extension Functions
+ */
 fun PropostaRequest.toModel() : Proposta {
 
     return Proposta(this.nome,
-            this.email,
-            this.documento,
-            this.endereco,
-            BigDecimal(this.salario))
+        this.email,
+        this.documento,
+        this.endereco,
+        BigDecimal(this.salario))
 }
